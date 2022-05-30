@@ -1,0 +1,2 @@
+#Description
+A simple dectionary program developed in C++, reads the dictionary txt file and can generate trigrams from trigram txt file, which can be interchanged with any other text passage. Developed in 2021.

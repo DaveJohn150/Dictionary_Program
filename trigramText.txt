@@ -1,0 +1,639 @@
+Modeling Perceived Difficulty in Game Levels 
+Daniel Wheat, Martin Masek, Chiou 
+Peng Lam and Philip Hingston 
+School of Computer and Security Science 
+Edith Cowan University 
+Perth, Australia 
+ABSTRACT 
+The recent interest in procedural content generation for video 
+games has created the need to establish techniques for assessment 
+of generated content. We present an investigation into the factors 
+determining perceived difficulty in procedurally generated game 
+levels. In doing so, an approach to identify relevant factors 
+pertaining to player experience is established, which is 
+subsequently used in the development of predictive difficulty 
+models. In this paper, we apply our methodology to the genre of 2D 
+platformers, presenting an investigation into factors related to 
+difficulty, the development of a test-bed that can be used to collect 
+the data, data collection and subsequent analysis. We investigate 
+the contribution of the identified game and player metrics towards 
+predicting difficulty using Multi-Layer Perceptron, J48 and 
+Random Forest classifiers from WEKA. This work is presented as 
+a preliminary investigation into modeling difficulty from 
+procedural content. Significantly, this investigation will provide a 
+preliminary insight into metrics that can be used for developing a 
+classification model for perceived difficulty. 
+1. INTRODUCTION 
+Video games have become an established, mainstream 
+entertainment medium. The resulting expectation of video games 
+to deliver rich content to a wide audience has put an increasing 
+burden of work on developers. Procedural Content Generation 
+(PCG) has been used to alleviate some of the burden by being able 
+to generate game level artifacts, such as terrain [13] and vegetation 
+[15]. However, the challenge of procedurally generating game 
+levels to be of an appropriate difficulty for a particular player 
+remains. 
+Difficulty, as perceived by a player, is a subjective attribute derived 
+from the factors pertaining to player experience. Several theoretical 
+frameworks exist for understanding how an optimal game 
+experience can be linked to player associated factors. Ralph 
+Koster’s Theory of Fun [6] associated fun game-play patterns with 
+learning. Csikszentmihalyi’s Flow Theory [2] describes how a 
+balance of both challenge and individual ability creates an optimal 
+play experience. Flow theory has been heavily adapted in difficulty 
+literature [1] [3] [4] as a basis for measuring player experience and 
+subsequently deriving difficulty models. 
+In this paper we introduce a methodology to identify the factors that 
+influence the perceived difficulty of a game level. The 
+methodology presents a series of steps to first identify a genre, 
+select parameters and develop the test-bed. 
+The methodology is subsequently applied to derive models for 
+predicting difficulty in the 2D platformer genre. We explore 
+classification based models, considering aspects of the game level 
+composition and also characteristics of the player actions within the 
+level. This work lays the foundations for subsequently generating 
+levels of an appropriate difficulty for a player. 
+The rest of this paper is structured as follows: section 2 discusses 
+related work to this field of study; section 3 presents the 
+methodology, section 4 details the application to 2D platformers; 
+section 5 details experimentation and results; section 6 presents 
+discussion and section 7 presents the conclusion. 
+2. RELATED WORK 
+Tan, et al. [17] noted that individuals play with unique styles and 
+employ different strategic approaches to doing so. They presented 
+a two adaptive algorithms named AUC and ADC that controlled 
+opponent artificial intelligence (AI). AUC models an expected 
+winning behavior, whereas ADC does not factor a losing behavior 
+as being opposed to a winning behavior. Investigation was 
+performed into varying the effects of learning and mutation rate 
+using evolutionary algorithms across a series of game trials. They 
+noted that AUC resulted in a smaller memory footprint, but ADC 
+was able to help reduce player frustration. 
+Kuang, et al. [7] profiled player fun into three categories (beginner, 
+intermediate and advanced) in order to perform Dynamic Difficulty 
+Adjustment (DDA) in a Space Shooter game. Each fun attribute is 
+derived using a combination of game-play factors recorded from 
+players, such as player fire recoil, round number, player fire power 
+and age. From these attributes, three models for beginner, 
+intermediate and advanced players were derived as rules. They 
+found that the approach needed more investigation in order to be 
+effective, specifically into the attributes contributing to fun, as the 
+identified attributes only contributed to a minor percentage of the 
+fun experienced. Using more attributes related to the game context 
+could yield better results. 
+Another approach to deriving difficulty involves the assessment of 
+content in which the player interacts. Jennings-Teats, et al. [5] 
+presented a tool for DDA, entitled Polymorph, where difficulty is 
+derived for a library of unique level segments. Levels are 
+procedurally generated from the set of segments which are each 
+assigned a difficulty rating. Player ratings are captured and used to 
+guide segment rating through machine learning. It was found 
+however, that this approach suffers from complications in assessing 
+difficulty between segments, highlighting the need to identify 
+additional level design factors that contribute to difficulty. 
+Togelius and Yannakakis, et al. explored player modeling over a 
+series of papers [11] [12] [19]. In [11] they explored the application 
+of player modeling within the Infinite Mario Bros [9] game context. 
+Levels were generated using four parameters: of number of gaps, 
+average gap width, gap spatial diversity and the number of direction 
+switches in the path to the end of the level. Players played pairs of 
+games, during which a number of gameplay parameters were 
+logged. Following a game pair, the player was asked compare the 
+games based on several emotion-based measures, with [12] 
+reporting on fun, challenge and frustration. They attempted to 
+approximate a function from level and gameplay features to 
+reported emotional preferences using neuroevolutionary preference 
+learning. Feature selection was utilized to find sub-sets yielding the 
+most accurate user models. Features were ranked based on their 
+correlation with reported emotions. The resulting models for Fun, 
+Challenge and Frustration reported accuracies of 69.18%, 77.77% 
+and 88.66% respectively. 
+In later work [19], an in-depth investigation into personalized level 
+creation was explored. Direct, Simulation-based and Interactive 
+approaches for capturing player experience were noted, with 
+relative literature examples for each. Noting how experience-driven 
+PCG can be successfully performed for any type of content, so long 
+as the representation is linked appropriately to the quality of 
+content. The paper highlighted the need for further investigation 
+into the quantification of player experience and subsequent 
+assessment of content. 
+A variety of literature has targeted real-time affective feedback for 
+the means of game adaption, as opposed to post-play surveys. 
+Shaker, et. al [1] explored visual cues as a means of reading player 
+behavior. Visual reactions towards certain events taking place in 
+game-play were captured from the player using computer vision 
+technology. Features of engagement, challenge and frustration 
+were extracted from a mapping of visual cue (such as head motion) 
+to game-play event (stomping an enemy). The approach estimated 
+player state based on their own behavioral characteristics, noting 
+that various players all have unique motions and behavior when 
+playing games. They noted that personality, culture and scaling 
+biases limited reported rankings; endorsing the need for self-reports 
+from players. 
+Lui C, et al. [8] also explored difficulty approximation through 
+direct affective feedback, using heart rate, temperature and eye 
+direction. They explored the potential of performing DDA through 
+the application of machine learning techniques, such as Regression 
+trees (RTs), K nearest neighbors (KNNs), Bayesian network 
+techniques and support vector machines (SVMs). SVMs and RTs 
+resulted in a predictive accuracy close to 90%. 
+Research has been directed at producing effective difficulty models 
+with some investigation into the factors constituting difficulty. We 
+present a deeper investigation into the influence of individual 
+factors for predicting difficulty. 
+3. Methodology 
+Our methodology for exploring factors contributing to player 
+difficulty consists of two phases, shown in Figure 1. The first phase 
+involves the capture of data from people that play through a set of 
+game levels. The subsequent phase is the analysis of the captured 
+data to produce difficulty models and to explore the role of the 
+parameters in predicting difficulty. Each phase consists of a number 
+of steps, which will now be detailed. 
+3.1 Data Capture 
+The first step in the data capture phase involves the identification 
+of a game genre. A large range of game genres exist, each with their 
+own particular game-play style. In choosing a genre, the definition 
+of a game level is narrowed down to a particular configuration of 
+spatial layout, challenge and player interaction. For example, a 
+game level in the car racing game genre and one in a real-time 
+strategy genre focus on different player abilities. With a car racing 
+game, fast response times by the player are key, with little need for 
+long-term planning. A real-time strategy on the other hand requires 
+the player to devise a strategy and enact it over the duration of the 
+game level. As such, perceived difficulty in the various genres is 
+governed by different factors. 
+Once a genre is identified, the second step is the identification of 
+parameters to be captured from the play-through of a game level. 
+In exploring factors that relate to perceived difficulty, there are four 
+categories to consider: 
+ Level characteristics 
+ Player game actions 
+ Raw player input 
+ Player difficulty rating 
+Level characteristics are those factors determined from the contents 
+of the level, such as speed of enemies and height of obstacles. As 
+such, they are highly dependent on the genre. They are also 
+independent of the player and can be measured prior to a player 
+interacting with the level. 
+Player game actions are measures based on the interaction of the 
+player with the game. In games where the player is personified as 
+an avatar, the actions may include those of that avatar, such as 
+‘falling’ or ‘moving forward’. In other genres these actions might 
+include measures taken from performing various functions in the 
+game, such as ‘producing units’ or ‘trading resources’ in a strategy 
+game. 
+Measures of raw player input include those such as the distribution 
+of time spent pressing particular keys on the keyboard. This set of 
+measures is related to player game behavior but can be obtained 
+without knowing details of the particular level or even the game 
+genre. 
+The player difficulty rating is needed as a measure of how the actual 
+difficulty of the level was perceived. This rating can be used in the 
+Figure 1. The methodology as followed in this paper. 
+ 
+Data Analysis 
+Data Capture 
+Game Genre Selection 
+ 
+Parameter Selection 
+Pre-Processing 
+Data Mining 
+Evaluation 
+Test Bed Development 
+Play Sessions 
+subsequent analysis phase to evaluate the difficulty model 
+produced using the various other measures. The player difficulty 
+rating is commonly obtained by asking the player after the 
+completion of a level to rate its difficulty. This is either done as a 
+direct measure of the level, such as asking for a difficulty rating 
+between 1 and 5 as in [7], or as a relative measure where the player 
+highlights which one is more difficult, as in [19]. 
+The third step, once the set of captured parameters has been 
+determined is to develop a test-bed that acts as a platform for player 
+interaction. In the test-bed, levels are generated, presented to the 
+player and the selected parameters are captured. This involves the 
+instrumentation of an existing game, or the development of a new 
+game in the particular genre along with a level generator. 
+Importantly, for the level characteristics that have been identified 
+in the previous step, the test-bed needs to produce levels where the 
+value of each characteristic can be kept constant in each level and 
+varied between levels. 
+The final step in Phase 1 is the collection of data through human 
+play sessions. In each play session, the participant plays a number 
+of levels using the test-bed. Each level represents a set of level 
+characteristic values, and the player assigns a difficulty after each 
+level. The dataset collected should represent a wide range of level 
+characteristics and should be captured from players across a broad 
+range of skill levels. 
+3.2 Data Analysis 
+In this phase, the factors that have been logged from play sessions 
+are treated as variables. The player difficulty rating is treated as the 
+dependent variable, and the other parameters as independent 
+variables used in the development of a model that, given a set of 
+independent variables, can derive the dependent variable. This can 
+be achieved using predictive models that derive difficulty as a 
+continuous variable, or classification models that categorize 
+difficulty into a particular discreet level. 
+The first step in data analysis is to pre-process the data. This 
+involves checking for validity, as well as the normalization of 
+values of the variables. Second, a variety of techniques can be 
+explored to build the model. A number of data mining packages, 
+such as WEKA [10], exist that allow the application of various 
+machine learning techniques for model generation. Thirdly in this 
+phase, produced models can be evaluated to determine how the 
+various characteristics can be used to develop subsequent games in 
+the genre where levels can be tailored to a particular difficulty level. 
+Based on the findings, various recommendations can be made. For 
+example, if player difficulty rating can be reliably predicted from 
+just level characteristics, then suitable future levels can be 
+generated independent of the player. 
+4. Application to 2D Platformers 
+We now apply our methodology to the genre of 2D platformers 
+using a custom built test-bed and level generator. The following 
+sub-sections present details for the Phase 1 consisting of: genre 
+selection, parameter selection and test-bed development. 
+Experiments constituting the data analysis phase are presented in 
+Section 5. 
+4.1 Genre Selection 
+The 2D platformer genre was selected due to its simple nature yet 
+substantial complexity. Platformer levels are comprised of 
+components as identified in [14]. Levels are structured with groups 
+of platforms, obstacles, collectible items and movement aids. The 
+player is represented as a character in the game (Player Avatar), 
+which they navigate from start to finish. The player fails the level 
+if the avatar collides with a defined static or moving obstacle. 
+Alternatively, the player wins if they can traverse the level to the 
+end, with collectible items increasing score or giving the player 
+special abilities. The selection of this genre constrains potential 
+parameters to be collected. 
+4.2 Parameter Selection 
+A typical play-through of a 2D platformer presents a number of 
+game-play related parameters to capture. Level characteristics are 
+the factors associated with the 2D platformer level. The following 
+categories of level characteristics were chosen for investigation: 
+ Level Shape 
+ Score 
+ Platforms 
+ Obstacles 
+ Movement Aids 
+ Décor 
+The mapping of these characteristics to actual game parameters is 
+detailed in Section 4.3.2. 
+Player game actions capture the expressed behavior of the player 
+during the evaluation of a level. A set of parameters that describe 
+the actions of the player avatar within the level are captured. These 
+parameters are as follows: 
+ Avatar Movement: 
+o Time standing still before first movement 
+o Minimum standing still time 
+o Maximum standing still time 
+o Total standing still time 
+o Time spent moving left 
+o Time spent moving right 
+o Time spent jumping 
+o Time in the air 
+o Number of jumps made 
+o Number of movement aids used 
+ Score Collected: 
+o Amount of score items collected 
+o Amount of score items missed 
+ Cause of Death. 
+ Finish Time: The time that the level ended. 
+ Death Coordinates: 
+o X and Y coordinates if the avatar failed the level. 
+The raw player input that guides the player avatar in the game 
+world forms a parameter set. This parameter set captures the key 
+strokes which map actions made by the player avatar. The possible 
+actions for the player avatar are as follows: 
+ Left arrow key (move left), 
+ Right arrow key (move right), 
+ Up arrow key (jump) 
+ Down arrow key (fall) 
+It is important to note that this parameter set is generic across game 
+contexts, as player input will always be present across every game. 
+To obtain a player difficulty rating, a player rates the level after 
+completion choosing from 10 discrete levels of 1 to 10. 
+4.3 Testbed Development 
+The developed test-bed consists of several components: 
+ 2D Platformer Game 
+ Level Generator 
+ Data Collection Components 
+The game and level generator was built in Unity and deployed as a 
+web application which was played through a browser by 
+participants. The data collection component was built using 
+ASP.NET and run on a server, communicating with game instances 
+via the internet. The following sections detail the development of 
+the game and level generator. 
+4.3.1 The Game 
+We developed a custom 2D platformer game called Jounce. Jounce 
+is a significantly extended version of the test-bed used in [18]. The 
+game was developed to provide more flexibility in controlling and 
+recording a wide range of parameters as opposed to existing test-
+beds, such as Infinite Mario Bros. 
+In Jounce, the player avatar traverses a game level from start to 
+finish whilst avoiding obstacles and collecting points. The avatar 
+has the ability to move right and left, jump and drop through 
+platforms. Figure 2 and Figure 3 each show a screenshot of the 
+game with the various components of a game level. 
+Levels are shaped by a terrain comprised of flat segments at various 
+heights. The terrain shape creates the main path in the level. 
+Additional terrain elements are generated through-out the level, 
+such as platforms, obstacles and points. 
+Platforms provide a means for the avatar to reach greater heights 
+and make longer jumps. Obstacles are immobile features that 
+impede the player’s progress. Two obstacles are present in Jounce, 
+spike pits, which end the level if the avatar falls into them and 
+rocket shooters, which are immobile but periodically spawn rockets 
+which fly across the level. If the avatar comes into contact with a 
+rocket the level ends with failure. 
+Two types of moving enemies can be present in levels, acting as 
+moving obstacles. Hedgehogs are a ground-based enemy that 
+patrols between two points. Avatar contact with hedgehogs will end 
+the level with failure. Bees are air-borne enemies that patrol. 
+Landing upon a bee from above will destroy it, however avatar 
+contact from any other side the end the level with failure. 
+Points are a collectible element in game levels, visualized as food 
+items, providing a short term reward to players in the form of eye-
+candy when collected. Points can be found in clusters across the 
+level both along the ground and in the air. Another element found 
+in levels are small springs that can propel the avatar a set distance 
+in the air when stepped upon. These act as a movement aid for the 
+player, to assist in movement across the level. Table 1 presents all 
+the level features recorded from generated levels and their relation 
+to the level characteristic parameter set. Each feature described 
+contributes to a characteristic of level. Certain features may not be 
+present more than others in generated levels, therefore all features 
+have been noted. 
+4.3.2 Procedural Level Generator 
+Levels for Jounce are procedurally generated using a custom 
+algorithm. Each level is created from a combination of eight 
+horizontally aligned segments. Each segment is comprised of 
+24x192 tiles. The level generator fills in the tiles for each segment 
+to correspond to a generated player path. Each level segment’s 
+player path is represented as a polynomial of either first or second 
+degree. After the player path has been generated for each segment, 
+an initial pass across the level fills in terrain to conform to each 
+path. For more detail on the creation of player path polynomials, 
+see [18]. Level features are then added with additional passes across 
+the created terrain. 
+The generation of the level is governed by a number of parameters. 
+Table 2 details the generation parameters for the level elements 
+detailed in 4.3.1 with a brief description. Each parameter is a real 
+number with a range between 0 and 1. 
+The test-bed was configured to generate levels with a random 
+distribution of level generation parameters. After a level is played, 
+a subsequent level is generated. The test-bed will repeatedly 
+generate levels as long as the player plays. Each level, even those 
+generated with the same parameters, is generated differently due to 
+a random number generator seed variable.
+5. Experiments and Results 
+After having identified parameter sets related to perceived 
+difficulty, developed a test-bed and captured a data set from human 
+players, an investigation into the influence of factors important to 
+perceived difficulty was conducted. 
+For the purposes of this work, a total of 38 players participated in 
+playtests, resulting in 591 levels being played. A majority of 
+participants were all over 18 years of age and mostly university 
+students, recruited through email invitation, posters and flyers. 
+Players all had varying levels of experience and expertise, varying 
+from beginner to veteran skills. Players could access the game 
+online via URL, in which they play a series of levels, rating each 
+with a 1 to 10 star rating describing their perceived difficulty of the 
+level. When a level was beaten or failed, the player had to give a 
+rating. However, if the player quit, no ratings or data was logged 
+for that level. Table 3 displays the number of samples gathered for 
+each difficulty rating as given by players after completing levels. 
+The data collection process is still continuing, and further 
+investigation will be conducted in the future. As some captured 
+parameters have large range variances, data was normalized based 
+on theoretical maximums. For the following experiments we obtain 
+sub-sets of the data where each difficulty rating is equally 
+represented. To do so, the data-set was resampled using the WEKA 
+supervised resample filter with a 100% ratio and a full uniform bias. 
+The first experiment assesses individual parameter categories 
+(Level Generation Parameters, Level Features, Avatar Behaviour 
+and Player Behaviour) in terms of resulting classifier accuracy and 
+to identify factors specific to each set with the highest contribution 
+to predicted difficulty. This is important, as parameters from all 
+categories may not always be available. For example, Player 
+Behaviour will not be available prior to the level being played. In 
+the second experiment, feature selection is applied on the full data-
+set with the entire range of parameters as the full set of data has 
+been collected. This reveals which combination of parameters from 
+across the different categories is most related to the measure of 
+level difficulty. The following sections detail each experiment 
+along with a discussion of their results. 
+5.1 Experiment 1 
+Experiment 1 explores the contribution of factors from individual 
+parameter sets for predicting perceive difficulty. An initial 
+investigation of classifiers using the collected data found that 
+Decision trees reached high classification accuracy, being able to 
+correctly classify difficulty rating in 72% of cases through Random 
+Forest (a combination of Bayesian prediction and decision trees). 
+This suggests that there are notable rule patterns within the data that 
+can be used to derive difficulty. Subsequent analysis of WEKA’s 
+Kappa statistic (0.691) noted statistical correlation. The Kappa 
+statistic acts as an analog of correlation coefficient, where a value 
+of zero represents a lack of relation and approaches to one for 
+strong statistical correlation. Thus the decision tree-based classifies 
+of Random Forest and J48 were used, along with Multi-Layer 
+Perceptron (MLP) as these have been used in level difficulty 
+classification by others [11]. 
+Following the identification of suitable classifiers, we explore the 
+parameters sets as identified in Section 4.2. Each specific metric 
+sets (level characteristics, level features, avatar behavior and 
+player behavior) is examined, to investigate factors in each set that 
+will impact on perceived difficulty and to derive which set will be 
+able to model perceived difficulty, thus yielding a higher 
+classification accuracy. Level generation metrics, level features and 
+avatar behavior are all related to the identified game genre but 
+player behavior (raw player input) involves metrics independent of 
+game/genre. Figure 4 presents the classifcation accuracy, in terms 
+of percentage of correctly classified levels, of MLPs, J48 and 
+Random Forest classifiers. 
+The first test found that the player behavior set achieved higher 
+classification accuracy using the Random Forest classifier. Random 
+Forest achieved high classification accuracy on every metric set 
+with performance over 70% on every trial. MLPs reached their 
+highest accuracy using the Level Generation set, but still classified 
+only 47.55% of the levels into the correct difficulty category. J48 
+achieved the highest performance using the Level Generation 
+parameter set, reaching an accuracy of 62.27%. 
+Random Forest was able to achieve the highest classification for 
+each metric set, specifically for the player behavior. The player 
+behavior can be captured generically across game contexts, 
+allowing for perceived difficulty to also be predicted across game 
+contexts using player specific actions and the Random Forest 
+classifier. 
+Following the investigation of classification accuracy for defined 
+parameter sets, we explore the contribution of factors from each 
+individual set. Table 4 shows the metrics prioritized in the creation 
+of J48 trees under each data category. 
+In assessing the metrics prioritized, we highlight some findings. 
+Time in air from the avatar behavior category indicates that the 
+difficulty experienced in levels was influenced based on the amount 
+of time the player avatar spent air-borne. There can be a number of 
+explanations for this finding, one being that players spending more 
+time in the air were more subject to rockets hitting them and 
+subsequently thought the level hard. The parameter Total enemies 
+from the level features category can be intuitively associated as an 
+important factor for the difficulty of a level, as the more enemies 
+present in a level would present a higher degree of challenge for the 
+player avoiding them. Level Slope from the level generation 
+category influences the resulting distance and direction of 
+traversing levels. Thus levels with a larger slope go up-hill, 
+requiring more effort for the player to progress. 
+Location of Death was an unusual factor to find prioritized. Further 
+investigation found that air-borne and ground-based enemy 
+parameters were partitioned by Y coordinates in Location of Death. 
+Air-borne obstacles such as bees and rockets fell under the branch 
+with Y above a certain threshold, and ground-based obstacles 
+below. These findings each provide insight into the game specific 
+parameters and their influence upon perceived difficulty. 
+Having explored the data-set categorically and investigating 
+classifiers built of each, we perform analysis on the entire data-set 
+to identify important factors from across all categories. 
+5.2 Experiment 2 
+Experiment 2 investigates the entire data-set comprised of all 
+metric categories. Given the limitation of this preliminary study, 
+with 50 data metrics and only 591 data points, we first perform 
+feature selection to derive the most important parameters across all 
+data. Feature selection reduces computational complexity by 
+reducing the number of features that need to be considered in the 
+subsequent model. Given a context where all identified features can 
+be captured, the selected feature set may be able to produce a 
+classifier that predicts difficulty better than individual metric sets 
+do. 
+Feature selection was performed upon the data-set to identify the 
+factors most important for predicting difficulty. Feature selection 
+was performed using both the ‘InfoGainAttributeEval’ and 
+‘CfsSubsetEval’ Attribute Evaluators from WEKA. 
+The ‘InfoGainAttributeEval’ attribute selector evaluates features 
+by measuring information gain with respect to difficutly_rating. 
+Table 5 presents the features as ranked by the algorithm. Note that 
+features that are not listed in Table 5 were not allocated a ranking. 
+We have noted all features that received a rating, to provide insight 
+into which metrics contributed so a future metric set could be 
+derived. This could be due to correlations between variables 
+reducing contribution towards difficulty prediction. For example, 
+the Level Generation data category has a metric for score to 
+generate and the Level Features category has a variable for score 
+created. Both parameters relate to the resulting score present in 
+generated levels. In Experiment 1 however, we examine features in 
+each set for their impact for predicting difficulty. Now, 
+incorporating feature selection, we investigated features across all 
+four categories to determine those that will contribute most to 
+predicting perceived difficulty. 
+CfsSubsetEval selects a set of features that highly correlate with 
+difficulty_rating while having a low inter-correlation with each 
+other. Table 6 presents the features prioritized in order by the 
+algorithm. Notably, all features that have been prioritized were also 
+selected by InfoGainAttributeEval, and also correspond with the 
+features identified in Section 5.1. 
+To determine the performance of the selected feature set, the 
+features identified by CfsSubsetEval were used to train the three 
+classifiers used in Experiment 1. The classification accuracy is 
+shown in Figure 5. For the decision tree-based classifies, 
+comparable performance is achieved with the parameter sets. For 
+the MLP, performance using the selected feature set is significantly 
+lower for all parameter categories except Player Behaviour. 
+6. Conclusion 
+An investigation into the development of a data-driven difficulty 
+model to predict perceived difficulty ratings from both level 
+structure and gameplay characteristics was presented. We have 
+presented our methodology, consisting of two phases; Phase 1 
+involves the capture of difficulty estimation data. Phase 2 involves 
+analysis of the captured dataset from Phase 1 to produce a 
+predictive difficulty model. We have applied the methodology to 
+the genre of 2D platformers, identifying parameters specific to 
+difficulty estimation and produced a functional test-bed game, level 
+generator and data collection toolset. 
+A dataset was captured from human players and subsequently 
+analyzed using the WEKA data mining package. Experimentation 
+was performed to assess the contribution of individual data 
+categories towards perceived difficulty, finding that a high 
+performance was reached with the Random Forest classifier. 
+Further investigation into the contribution of parameter sets 
+towards classification accuracy found that Player and Avatar 
+Behavior data alone could achieve high accuracy with decision 
+trees, finding that parameters such as Level Slope, Total Enemies 
+and Time in Air all contribute to perceived difficulty. 
+Experiment 2 explored feature selection on the entire data to 
+identify metrics most important to difficulty prediction. We applied 
+the ‘InfoGainAttributeEval’ and ‘CfsSubsetEval’ attribute 
+evaluators upon the data-set, finding that Level Slope, Total 
+Enemies, Springs Generated, Maximum time spent still, Total time 
+spent still, Time of End and Location of Death X all had significant 
+correlation to difficulty rating. Classifiers could be built using the 
+reduced parameter sets that achieved accuracy comparable to 
+classifiers built using the full set of features from any of the 
+parameter sets presented in Experiment 1. 
+Future work can explore the generation of levels using 
+combinations of features identified in experiment 2 in order to tailor 
+difficulty of future level content to individual players. Additionally, 
+further investigation into the application of classifiers trained from 
+more data will be performed. We are in the process of obtaining a 
+larger data set which can be used to expand our investigation for 
+developing a classification model for perceived difficulty. These 
+finding have relevance to applications seeking to produce game 
+levels of appropriate difficulty for a player. 
+7. REFERENCES 
+[1] Asteriadis, S., Shaker, N., Karpouzis, K., & Yannakakis, G. 
+N. (2012). Towards player’s affective and behavioral visual 
+cues as drives to game adaptation. 
+[2] Csikszentmihalyi, M., & Csikszentmihalyi, I. S. 
+(1992). Optimal experience: Psychological studies of flow in 
+consciousness. Cambridge university press. 
+[3] Hunicke, R. (2005, June). The case for dynamic difficulty 
+adjustment in games. In Proceedings of the 2005 ACM 
+SIGCHI International Conference on Advances in Computer 
+Entertainment Technology (pp. 429-433). ACM. 
+[4] Hunicke, R., & Chapman, V. (2004, July). AI for dynamic 
+difficulty adjustment in games. In Challenges in Game 
+Artificial Intelligence AAAI Workshop (pp. 91-96). 
+[5] Jennings-Teats, M., Smith, G., & Wardrip-Fruin, N. (2010, 
+June). Polymorph: dynamic difficulty adjustment through 
+level generation. In Proceedings of the 2010 Workshop on 
+Procedural Content Generation in Games (p. 11). ACM. 
+[6] Koster, R. (2013). Theory of fun for game design. " O'Reilly 
+Media, Inc.". 
+[7] Kuang, A. (2012). Dynamic Difficulty Adjustment (Doctoral 
+dissertation, Worcester Polytechnic Institute). 
+[8] Liu, C., Agrawal, P., Sarkar, N., & Chen, S. (2009). Dynamic 
+difficulty adjustment in computer games through real-time 
+anxiety-based affective feedback. International Journal of 
+Human-Computer Interaction, 25(6), 506-529. 
+[9] Marioai.org,. 'Mario AI Championship 2012'. N.p., 2015. 
+Web. 15 Sept. 2015. 
+[10] Mark Hall, Eibe Frank, Geoffrey Holmes, Bernhard 
+Pfahringer, Peter Reutemann, Ian H. Witten (2009); The 
+WEKA Data Mining Software: An Update; SIGKDD 
+Explorations, Volume 11, Issue 1. 
+[11] Pedersen, C., Togelius, J., & Yannakakis, G. N. (2009, 
+September). Modeling player experience in Super Mario 
+Bros. In Computational Intelligence and Games, 2009. CIG 
+2009. IEEE Symposium on (pp. 132-139). IEEE. 
+[12] Pedersen, C., Togelius, J., & Yannakakis, G. N. (2010). 
+Modeling player experience for content 
+creation. Computational Intelligence and AI in Games, IEEE 
+Transactions on, 2(1), 54-67. 
+[13] Planetside. (n.d). Retrieved September 15, 2015. 
+[14] Smith, G., Cha, M., & Whitehead, J. (2008, August). A 
+framework for analysis of 2D platformer levels. 
+In Proceedings of the 2008 ACM SIGGRAPH symposium on 
+Video games (pp. 75-80). ACM. 
+[15] Speedtree. (n.d). Retrieved September 15, 2015. 
+[16] Sweetser, P., & Wyeth, P. (2005). GameFlow: a model for 
+evaluating player enjoyment in games. Computers in 
+Entertainment (CIE), 3(3), 3-3. 
+[17] Tan, C. H., Tan, K. C., & Tay, A. (2011). Dynamic game 
+difficulty scaling using adaptive behavior-based 
+AI. Computational Intelligence and AI in Games, IEEE 
+Transactions on, 3(4), 289-301. 
+[18] Wheat, Daniel et al. 'Dynamic Difficulty Adjustment In 2D 
+Platformers Through Agent-Based Procedural Level 
+Generation'. IEEE INTERNATIONAL CONFERENCE ON 
+SYSTEMS, MAN, AND CYBERNETICS (2015): Print. 
+[19] Yannakakis, G. N., & Togelius, J. (2011). Experience-driven 
+procedural content generation. Affective Computing, IEEE 
+Transactions on, 2(3), 147-161. 
